@@ -21,6 +21,9 @@ export class UserEntity {
   @Column()
   password: string;
 
+  @Column()
+  passwordV2: string;
+
   @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.CUSTOMER] })
   roles: Roles[];
 }
