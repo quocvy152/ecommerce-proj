@@ -1,29 +1,37 @@
+/* eslint-disable prettier/prettier */
 import { Roles } from 'src/utility/common/users/user-roles.enum';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Status } from 'src/utility/common/users/user-status.enum';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ unique: true })
+  username: string;
+
   @Column()
   fullname: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ unique: true })
   phone: string;
 
-  @Column()
-  status: string;
+  @Column({ type: 'enum', enum: Status, enumName: 'status', default: Status.INACTIVE })
+  status: string = Status.INACTIVE;
 
-  @Column()
+  @Column({ select: false })
   password: string;
-
-  @Column()
-  passwordV2: string;
 
   @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.CUSTOMER] })
   roles: Roles[];
+
+  @CreateDateColumn()
+  createAt: Timestamp;
+
+  @UpdateDateColumn()
+  updatedAt: Timestamp;
 }
