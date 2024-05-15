@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from 'database/data-source';
 import { UsersModule } from './users/users.module';
 import { CurrentUserMiddleware } from './utility/middleware/current-user.middleware';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule],
+  imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule, CategoriesModule],
   controllers: [],
   providers: [],
 })

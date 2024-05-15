@@ -10,6 +10,7 @@ import { UserSignUpDto } from './dto/user-signup.dto';
 import { hash, compare } from 'bcrypt';
 import { UserSignInDto } from './dto/user-signin.dto';
 import { sign } from 'jsonwebtoken';
+import { FindUserResponse, ListUserResponse, SignInResponse, SignUpResponse } from './types/response';
 
 @Injectable()
 export class UsersService {
@@ -17,19 +18,16 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
-  ) {}
+  ) { }
 
-  async signIn(userSignInDto: UserSignInDto): Promise<{
-    data: UserEntity,
-    accessToken: string
-  }> {
+  async signIn(userSignInDto: UserSignInDto): Promise<SignInResponse> {
     const isExistUser = await this.usersRepository.createQueryBuilder('users').addSelect('users.password').where('users.email=:email', { email: userSignInDto.email }).getOne();
-    if(!isExistUser) {
+    if (!isExistUser) {
       throw new BadRequestException('Email is not exist');
     }
 
     const isMatchPass = await compare(userSignInDto.password, isExistUser.password);
-    if(!isMatchPass) {
+    if (!isMatchPass) {
       throw new BadRequestException('Password is wrong');
     }
 
@@ -38,27 +36,35 @@ export class UsersService {
     const accessToken = await this.generateAccessToken(isExistUser);
 
     return {
+      error: false,
       data: isExistUser,
       accessToken
     };
   }
 
-  async signUp(userSignUpDto: UserSignUpDto):Promise<{
-    data: UserEntity
-  }> {
+  async signUp(userSignUpDto: UserSignUpDto): Promise<SignUpResponse> {
     const isExisUsername = await this.findUserByUsername(userSignUpDto.username);
-    if(isExisUsername) {
-      throw new BadRequestException('Username is not available')
+    if (isExisUsername) {
+      return {
+        error: false,
+        message: 'Username is not available'
+      };
     }
 
     const isExistEmail = await this.findUserByEmail(userSignUpDto.email);
-    if(isExistEmail) {
-      throw new BadRequestException('Email is not available')
+    if (isExistEmail) {
+      return {
+        error: false,
+        message: 'Email is not available'
+      };
     }
 
     const isExistPhone = await this.findUserByPhone(userSignUpDto.phone);
-    if(isExistPhone) {
-      throw new BadRequestException('Phone is not available')
+    if (isExistPhone) {
+      return {
+        error: false,
+        message: 'Phone is not available'
+      };
     }
 
     userSignUpDto.password = await hash(userSignUpDto.password, 10);
@@ -69,6 +75,7 @@ export class UsersService {
     delete resultCreateUser.password;
 
     return {
+      error: false,
       data: resultCreateUser
     };
   }
@@ -77,20 +84,23 @@ export class UsersService {
     return 'This action adds a new user';
   }
 
-  async findAll(): Promise<UserEntity[]> {
+  async findAll(): Promise<ListUserResponse> {
     const listUser = await this.usersRepository.find();
-    return listUser;
+
+    return {
+      error: false,
+      data: listUser
+    };
   }
 
-  async findOne(id: number): Promise<{
-    data: UserEntity
-  }> {
+  async findOne(id: number): Promise<FindUserResponse> {
     const infoUser = await this.usersRepository.findOneBy({ id });
-    if(!infoUser) {
+    if (!infoUser) {
       throw new NotFoundException('Cannot get info user')
     }
-    
+
     return {
+      error: false,
       data: infoUser
     };
   }

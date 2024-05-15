@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
+import { CategoryEntity } from 'src/categories/entities/category.entity';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { Status } from 'src/utility/common/users/user-status.enum';
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class UserEntity {
@@ -34,4 +35,7 @@ export class UserEntity {
 
   @UpdateDateColumn()
   updatedAt: Timestamp;
+
+  @OneToMany(() => CategoryEntity, (category) => category.addedBy)
+  categories: CategoryEntity[]
 }
