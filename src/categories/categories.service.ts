@@ -1,3 +1,4 @@
+import { BadRequestException, Param } from '@nestjs/common';
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Body, Injectable, Post } from '@nestjs/common';
@@ -8,6 +9,7 @@ import { CategoryEntity } from './entities/category.entity';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
+import { CreateCategoryResponse, UpdateCategoryResponse } from './types/response';
 
 @Injectable()
 export class CategoriesService {
@@ -17,22 +19,47 @@ export class CategoriesService {
   ) {}
 
   @Post()
-  async create(@Body() createCategoryDto: CreateCategoryDto, @CurrentUser() currentUser: UserEntity): Promise<CategoryEntity> {
+  async create(@Body() createCategoryDto: CreateCategoryDto, @CurrentUser() currentUser: UserEntity): Promise<CreateCategoryResponse> {
     const category = await this.categoriesRepository.create(createCategoryDto);
     category.addedBy = currentUser;
-    return await this.categoriesRepository.save(category);
+
+    const resultCreateCategory = await this.categoriesRepository.save(category);
+
+    return {
+      error: false,
+      data: resultCreateCategory
+    };
   }
 
   findAll() {
     return `This action returns all categories`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number): Promise<CategoryEntity> {
+    // const resultFindCategory = await this.categoriesRepository.findOneBy({ id });
+    const resultFindCategory = await this.categoriesRepository.findOne({
+      where: { id },
+      relations: {
+        addedBy: true
+      }
+    });
+    return resultFindCategory;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>): Promise<UpdateCategoryResponse> {
+    const infoCategory = await this.findOne(id);
+    if(!infoCategory) {
+      throw new BadRequestException(`Category ${id} not exist`);
+    }
+
+    Object.assign(infoCategory, dataUpdate);
+
+    const resultUpdateCategory = await this.categoriesRepository.save(infoCategory);
+
+    return {
+      error: false,
+      data: resultUpdateCategory,
+    };
   }
 
   remove(id: number) {

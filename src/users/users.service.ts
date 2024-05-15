@@ -45,26 +45,17 @@ export class UsersService {
   async signUp(userSignUpDto: UserSignUpDto): Promise<SignUpResponse> {
     const isExisUsername = await this.findUserByUsername(userSignUpDto.username);
     if (isExisUsername) {
-      return {
-        error: false,
-        message: 'Username is not available'
-      };
+      throw new BadRequestException('Username is not available');
     }
 
     const isExistEmail = await this.findUserByEmail(userSignUpDto.email);
     if (isExistEmail) {
-      return {
-        error: false,
-        message: 'Email is not available'
-      };
+      throw new BadRequestException('Email is not available');
     }
 
     const isExistPhone = await this.findUserByPhone(userSignUpDto.phone);
     if (isExistPhone) {
-      return {
-        error: false,
-        message: 'Phone is not available'
-      };
+      throw new BadRequestException('Phone is not available');
     }
 
     userSignUpDto.password = await hash(userSignUpDto.password, 10);
