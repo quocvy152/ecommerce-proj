@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ecommerce-proj
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - ecommerce-proj-db
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm run migration:run && npm run start:dev"
+
+  ecommerce-proj-db:
+    container_name: ecommerce-proj-db
+    image: postgres:14.1-alpine
+    environment:
+      - POSTGRES_DB=ecommerce-proj-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
