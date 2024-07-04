@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { FindUserResponse, ListUserResponse, SignUpResponse, SignInResponse } from './types/response';
+import { FindUserResponse, ListUserResponse, SignUpResponse, SignInResponse } from './typings/response';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserSignUpDto } from './dto/user-signup.dto';

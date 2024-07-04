@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { CategoryEntity } from 'src/categories/entities/category.entity';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { Status } from 'src/utility/common/users/user-status.enum';

@@ -8,7 +8,11 @@ export type FormatResponseType<T = object> = {
     message?: string,
 } & T;
 
-export type SignInResponse = FormatResponseType<{ data?: UserEntity, accessToken?: string }>;
+export type SignInResponse = FormatResponseType<{ 
+    data?: UserEntity, 
+    accessToken?: string,
+    refreshToken?: string,
+}>;
 
 export type SignUpResponse = FormatResponseType<{ data?: UserEntity }>;
 

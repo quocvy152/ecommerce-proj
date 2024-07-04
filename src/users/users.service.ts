@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +8,7 @@ import { UserSignUpDto } from './dto/user-signup.dto';
 import { hash, compare } from 'bcrypt';
 import { UserSignInDto } from './dto/user-signin.dto';
 import { sign } from 'jsonwebtoken';
-import { FindUserResponse, ListUserResponse, SignInResponse, SignUpResponse } from './types/response';
+import { FindUserResponse, ListUserResponse, SignInResponse, SignUpResponse } from './typings/response';
 
 @Injectable()
 export class UsersService {
@@ -34,11 +32,13 @@ export class UsersService {
     delete isExistUser.password;
 
     const accessToken = await this.generateAccessToken(isExistUser);
+    const refreshToken = await this.generateRefreshToken(isExistUser);
 
     return {
       error: false,
       data: isExistUser,
-      accessToken
+      accessToken,
+      refreshToken
     };
   }
 
@@ -122,5 +122,10 @@ export class UsersService {
   async generateAccessToken(userEntity: UserEntity): Promise<string> {
     const accessToken = await sign({ id: userEntity.id, email: userEntity.email }, process.env.ACCESS_TOKEN_SECRET_KEY, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_TIME })
     return accessToken;
+  }
+
+  async generateRefreshToken(userEntity: UserEntity): Promise<string> {
+    const refreshToken = await sign({ id: userEntity.id, email: userEntity.email }, process.env.REFRESH_TOKEN_SECRET_KEY, { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_TIME })
+    return refreshToken;
   }
 }
