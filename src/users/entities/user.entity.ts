@@ -1,3 +1,4 @@
+import { BrandEntity } from 'src/brands/entities/brand.entity';
 import { CategoryEntity } from 'src/categories/entities/category.entity';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { Status } from 'src/utility/common/users/user-status.enum';
@@ -37,4 +38,7 @@ export class UserEntity {
 
   @OneToMany(() => CategoryEntity, (category) => category.addedBy)
   categories: CategoryEntity[]
+
+  @OneToMany(() => BrandEntity, (brand) => brand.addedBy)
+  brands: BrandEntity[]
 }

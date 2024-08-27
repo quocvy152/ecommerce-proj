@@ -1,5 +1,4 @@
-/* eslint-disable prettier/prettier */
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateCategoryDto {
     @IsNotEmpty({ message: 'Title can not be empty.' })
@@ -9,4 +8,8 @@ export class CreateCategoryDto {
     @IsNotEmpty({ message: 'Description can not be empty.' })
     @IsString({ message: 'Description should be string.' })
     description: string;
+
+    @IsOptional()
+    @IsNumber()
+    parentId: number;
 }

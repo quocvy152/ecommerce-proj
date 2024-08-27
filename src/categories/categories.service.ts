@@ -1,42 +1,126 @@
-import { BadRequestException, Param } from '@nestjs/common';
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Body, Injectable, Post } from '@nestjs/common';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { BadRequestException, Body, Get, Injectable, Param, Post } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryEntity } from './entities/category.entity';
-import { Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
-import { CreateCategoryResponse, UpdateCategoryResponse } from './types/response';
+import { Repository } from 'typeorm';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CategoryEntity } from './entities/category.entity';
+import { CreateCategoryResponse, ListCategoryResponse, UpdateCategoryResponse } from './types/response';
 
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(CategoryEntity)
     private readonly categoriesRepository: Repository<CategoryEntity>,
-  ) {}
+  ) { }
 
   @Post()
   async create(@Body() createCategoryDto: CreateCategoryDto, @CurrentUser() currentUser: UserEntity): Promise<CreateCategoryResponse> {
-    const category = await this.categoriesRepository.create(createCategoryDto);
-    category.addedBy = currentUser;
+    try {
+      const { parentId, title, description } = createCategoryDto;
 
-    const resultCreateCategory = await this.categoriesRepository.save(category);
+      const parentCategory = parentId ? await this.findById(parentId) : null;
 
-    return {
-      error: false,
-      data: resultCreateCategory
-    };
+      const newCategory = {
+        title,
+        description,
+        parent: parentCategory
+      }
+
+      const category = await this.categoriesRepository.create(newCategory);
+
+      category.addedBy = currentUser;
+
+      const resultCreateCategory = await this.categoriesRepository.save(category);
+
+      return {
+        error: false,
+        data: resultCreateCategory
+      };
+    } catch (error) {
+      return {
+        error: true,
+        message: error?.message
+      };
+    }
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  @Get()
+  async findAll(): Promise<ListCategoryResponse> {
+    try {
+      const resultGetList = await this.categoriesRepository
+        .createQueryBuilder('category')
+        .getMany()
+
+      return {
+        error: false,
+        data: resultGetList
+      };
+    } catch (error) {
+      return {
+        error: true,
+        message: error?.message
+      };
+    }
+  }
+
+  @Get()
+  async getListCategoryAndChild(): Promise<ListCategoryResponse> {
+    try {
+      const resultGetList = await this.categoriesRepository
+        .createQueryBuilder('category')
+        .select('parentCategory.id', 'parentId')
+        .addSelect('parentCategory.title', 'parentTitle')
+        .addSelect('parentCategory.description', 'parentDescription')
+        .addSelect(`
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', category.id,
+              'title', category.title,
+              'description', category.description
+            )
+          )  
+        `, 'categoryChild')
+        .leftJoin('category.parent', 'parentCategory')
+        .where('parentCategory.id IS NOT NULL')
+        .groupBy('parentCategory.id')
+        .addGroupBy('parentCategory.title')
+        .addGroupBy('parentCategory.description')
+        .getRawMany();
+
+      const idsCategoryParentHaveChild = resultGetList.map(categoryItem => categoryItem.parentId);
+
+      const recordsWithoutParent = await this.categoriesRepository
+        .createQueryBuilder('category')
+        .select('category.id', 'parentId')
+        .addSelect('category.title', 'parentTitle')
+        .addSelect('category.description', 'parentDescription')
+        .where('category.parent IS NULL')
+        .andWhere('category.id NOT IN (:...ids)', { ids: idsCategoryParentHaveChild })
+        .getRawMany();
+
+      return {
+        error: false,
+        data: [
+          ...resultGetList,
+          ...recordsWithoutParent
+        ]
+      };
+    } catch (error) {
+      return {
+        error: true,
+        message: error?.message
+      };
+    }
+  }
+
+  async findById(id: number): Promise<CategoryEntity> {
+    const resultFindCategory = await this.categoriesRepository.findOneBy({ id });
+    return resultFindCategory;
   }
 
   async findOne(id: number): Promise<CategoryEntity> {
-    // const resultFindCategory = await this.categoriesRepository.findOneBy({ id });
     const resultFindCategory = await this.categoriesRepository.findOne({
       where: { id },
       relations: {
@@ -48,7 +132,7 @@ export class CategoriesService {
 
   async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>): Promise<UpdateCategoryResponse> {
     const infoCategory = await this.findOne(id);
-    if(!infoCategory) {
+    if (!infoCategory) {
       throw new BadRequestException(`Category ${id} not exist`);
     }
 
@@ -60,10 +144,6 @@ export class CategoriesService {
       error: false,
       data: resultUpdateCategory,
     };
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} category`;
   }
 }
 

@@ -1,14 +1,14 @@
 import { UserEntity } from "src/users/entities/user.entity";
-import { Status } from "src/utility/common/categories/category-status.enum";
+import { Status } from "src/utility/common/brands/brand-status.enum";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
 
-@Entity({ name: 'categories' })
-export class CategoryEntity {
+@Entity({ name: 'brands' })
+export class BrandEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ unique: true })
-    title: string;
+    name: string;
 
     @Column()
     description: string;
@@ -19,14 +19,14 @@ export class CategoryEntity {
     @UpdateDateColumn()
     updateAt: Timestamp;
 
-    @ManyToOne(() => UserEntity, (user) => user.categories)
+    @ManyToOne(() => UserEntity, (user) => user.brands)
     addedBy: UserEntity
 
-    @ManyToOne(() => CategoryEntity, category => category.children, { nullable: true })
-    parent: CategoryEntity;
+    @ManyToOne(() => BrandEntity, brand => brand.children, { nullable: true })
+    parent: BrandEntity;
 
-    @OneToMany(() => CategoryEntity, category => category.parent, { nullable: true })
-    children: CategoryEntity[];
+    @OneToMany(() => BrandEntity, brand => brand.parent, { nullable: true })
+    children: BrandEntity[];
 
     @Column()
     @Column({ type: 'enum', enum: Status, default: Status.ACTIVE })
