@@ -39,10 +39,7 @@ export class CategoriesService {
         data: resultCreateCategory
       };
     } catch (error) {
-      return {
-        error: true,
-        message: error?.message
-      };
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -58,10 +55,7 @@ export class CategoriesService {
         data: resultGetList
       };
     } catch (error) {
-      return {
-        error: true,
-        message: error?.message
-      };
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -108,10 +102,7 @@ export class CategoriesService {
         ]
       };
     } catch (error) {
-      return {
-        error: true,
-        message: error?.message
-      };
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -131,19 +122,23 @@ export class CategoriesService {
   }
 
   async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>): Promise<UpdateCategoryResponse> {
-    const infoCategory = await this.findOne(id);
-    if (!infoCategory) {
-      throw new BadRequestException(`Category ${id} not exist`);
+    try {
+      const infoCategory = await this.findOne(id);
+      if (!infoCategory) {
+        throw new BadRequestException(`Category ${id} not exist`);
+      }
+
+      Object.assign(infoCategory, dataUpdate);
+
+      const resultUpdateCategory = await this.categoriesRepository.save(infoCategory);
+
+      return {
+        error: false,
+        data: resultUpdateCategory,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-
-    Object.assign(infoCategory, dataUpdate);
-
-    const resultUpdateCategory = await this.categoriesRepository.save(infoCategory);
-
-    return {
-      error: false,
-      data: resultUpdateCategory,
-    };
   }
 }
 
