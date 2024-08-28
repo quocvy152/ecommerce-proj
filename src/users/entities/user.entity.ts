@@ -1,14 +1,12 @@
 import { BrandEntity } from 'src/brands/entities/brand.entity';
 import { CategoryEntity } from 'src/categories/entities/category.entity';
+import { BaseEntity } from 'src/types/base-schema';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { Status } from 'src/utility/common/users/user-status.enum';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('users')
-export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class UserEntity extends BaseEntity {
   @Column({ unique: true })
   username: string;
 
@@ -29,12 +27,6 @@ export class UserEntity {
 
   @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.CUSTOMER] })
   roles: Roles[];
-
-  @CreateDateColumn()
-  createAt: Timestamp;
-
-  @UpdateDateColumn()
-  updatedAt: Timestamp;
 
   @OneToMany(() => CategoryEntity, (category) => category.addedBy)
   categories: CategoryEntity[]
