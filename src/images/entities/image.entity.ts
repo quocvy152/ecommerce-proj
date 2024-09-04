@@ -3,21 +3,17 @@ import { BaseEntity } from "src/types/base-schema";
 import { UserEntity } from "src/users/entities/user.entity";
 import { Column, Entity, ManyToOne } from "typeorm";
 
-@Entity({ name: 'products' })
-export class ProductEntity extends BaseEntity {
+@Entity({ name: 'images' })
+export class ImageEntity extends BaseEntity {
     @Column({ unique: true })
     name: string;
 
     @Column()
     @IsPositive()
-    price: number;
+    size: number;
 
     @Column()
-    @IsPositive()
-    basePrice: number;
-
-    @Column()
-    description: string;
+    path: string;
 
     @ManyToOne(() => UserEntity, (user) => user.products)
     addedBy: UserEntity;

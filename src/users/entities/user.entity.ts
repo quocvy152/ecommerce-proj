@@ -1,5 +1,7 @@
 import { BrandEntity } from 'src/brands/entities/brand.entity';
 import { CategoryEntity } from 'src/categories/entities/category.entity';
+import { ImageEntity } from 'src/images/entities/image.entity';
+import { ProductEntity } from 'src/products/entities/product.entity';
 import { BaseEntity } from 'src/types/base-schema';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { Status } from 'src/utility/common/users/user-status.enum';
@@ -33,4 +35,10 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => BrandEntity, (brand) => brand.addedBy)
   brands: BrandEntity[]
+
+  @OneToMany(() => ProductEntity, (product) => product.addedBy)
+  products: ProductEntity;
+
+  @OneToMany(() => ImageEntity, (image) => image.addedBy)
+  images: ImageEntity;
 }
