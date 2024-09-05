@@ -1,9 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import axios from 'axios';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 import { ImagesService } from './images.service';
+
+import axios from 'axios';
+import * as FormData from 'form-data';
 
 @Controller('images')
 export class ImagesController {
@@ -37,14 +39,9 @@ export class ImagesController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    // const base64String = file.buffer.toString('base64');
-    // return base64String;
-
-    // formData.append("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InByaXZhdGVfTTltMTVOSHdadHRuS2V4NEFML2ZCUVlIcUhjPSJ9.eyJmaWxlTmFtZSI6InZpdmF3b29sX3Byb2R1Y3RfMDAxLmpwZyIsInVzZVVuaXF1ZUZpbGVOYW1lIjoiZmFsc2UiLCJpYXQiOjE3MjU0MjgyNDcwOTAsImV4cCI6MTcyNTQ3MTI5NjAwMH0.9KlVhVoM8twtu2T_Lp-HF3pHx4EAQCBNVW0pACm6HTA");
-
-    const dataUploadFile = {
-      fileName: 'vivawool_prod_001.png'
-    }
+    const formData = new FormData();
+    formData.append("file", file.buffer.toString('base64'));
+    formData.append("fileName", "vivawool_prod_001.png");
 
     const options = {
       method: 'POST',
@@ -54,14 +51,14 @@ export class ImagesController {
         Accept: 'application/json',
         Authorization: 'Basic cHJpdmF0ZV9NOW0xNU5Id1p0dG5LZXg0QUwvZkJRWUhxSGM9Og=='
       },
-      data: JSON.stringify(dataUploadFile)
+      data: formData
     };
     
     try {
       const { data } = await axios.request(options);
       return data;
     } catch (error) {
-      console.error(error);
+      return error;
     }
   }
 }

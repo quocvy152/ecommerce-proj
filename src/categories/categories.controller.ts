@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseGuards } from '@nestjs/common';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
@@ -34,8 +34,8 @@ export class CategoriesController {
 
   @UseGuards(AuthenticationGuard, AuthorizeGuard([Roles.ADMIN]))
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() dataUpdate: Partial<UpdateCategoryDto>) {
-    const resultUpdate = await this.categoriesService.update(+id, dataUpdate);
+    async update(@Param('id') id: number, @Body() dataUpdate: Partial<UpdateCategoryDto>, @UploadedFile() file: Express.Multer.File) {
+    const resultUpdate = await this.categoriesService.update(+id, dataUpdate, file);
     return resultUpdate;
   }
 }

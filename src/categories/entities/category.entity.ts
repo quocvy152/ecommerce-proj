@@ -1,7 +1,8 @@
+import { ImageEntity } from "src/images/entities/image.entity";
 import { BaseEntity } from "src/types/base-schema";
 import { UserEntity } from "src/users/entities/user.entity";
 import { Status } from "src/utility/common/categories/category-status.enum";
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, OneToOne } from "typeorm";
 
 @Entity({ name: 'categories' })
 export class CategoryEntity extends BaseEntity {
@@ -22,4 +23,7 @@ export class CategoryEntity extends BaseEntity {
 
     @Column({ type: 'enum', enum: Status, default: Status.ACTIVE })
     status: Status;
+
+    @OneToOne(() => ImageEntity)
+    image: ImageEntity
 }

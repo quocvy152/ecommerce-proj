@@ -1,5 +1,6 @@
 import { BadRequestException, Body, Get, Injectable, Param, Post } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ImagesService } from 'src/images/images.service';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
 import { Repository } from 'typeorm';
@@ -13,6 +14,8 @@ export class CategoriesService {
   constructor(
     @InjectRepository(CategoryEntity)
     private readonly categoriesRepository: Repository<CategoryEntity>,
+
+    private readonly imageService: ImagesService,
   ) { }
 
   @Post()
@@ -84,6 +87,7 @@ export class CategoriesService {
         .getRawMany();
 
       const idsCategoryParentHaveChild = resultGetList.map(categoryItem => categoryItem.parentId);
+      console.log("🚀 ~ CategoriesService ~ getListCategoryAndChild ~ idsCategoryParentHaveChild:", idsCategoryParentHaveChild)
 
       const recordsWithoutParent = await this.categoriesRepository
         .createQueryBuilder('category')
@@ -121,11 +125,15 @@ export class CategoriesService {
     return resultFindCategory;
   }
 
-  async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>): Promise<UpdateCategoryResponse> {
+  async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>, file: Express.Multer.File): Promise<UpdateCategoryResponse> {
     try {
       const infoCategory = await this.findOne(id);
       if (!infoCategory) {
         throw new BadRequestException(`Category ${id} not exist`);
+      }
+
+      if(file) {
+        
       }
 
       Object.assign(infoCategory, dataUpdate);
