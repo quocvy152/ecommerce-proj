@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { Roles } from 'src/utility/common/users/user-roles.enum';
 import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
@@ -11,7 +12,7 @@ import { CreateBrandResponse, ListBrandResponse } from './types/response';
 
 @Controller('brands')
 export class BrandsController {
-  constructor(private readonly brandsService: BrandsService) {}
+  constructor(private readonly brandsService: BrandsService) { }
 
   @UseGuards(AuthenticationGuard, AuthorizeGuard([Roles.ADMIN]))
   @Post()
@@ -38,9 +39,15 @@ export class BrandsController {
   }
 
   @UseGuards(AuthenticationGuard, AuthorizeGuard([Roles.ADMIN]))
+  @UseInterceptors(FileInterceptor('file'))
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() dataUpdate: Partial<UpdateBrandDto>) {
-    const resultUpdate = await this.brandsService.update(+id, dataUpdate);
+  async update(
+    @Param('id') id: number, 
+    @Body() dataUpdate: Partial<UpdateBrandDto>, 
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() currentUser: UserEntity
+  ) {
+    const resultUpdate = await this.brandsService.update(+id, dataUpdate, file, currentUser);
     return resultUpdate;
   }
 

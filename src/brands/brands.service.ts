@@ -1,7 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ImagesService } from 'src/images/images.service';
+import { uploadFile } from 'src/services/image_kit_io';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { Status } from 'src/utility/common/brands/brand-status.enum';
+import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
 import { Repository } from 'typeorm';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
@@ -13,6 +16,8 @@ export class BrandsService {
   constructor(
     @InjectRepository(BrandEntity)
     private readonly brandsRepository: Repository<BrandEntity>,
+
+    private readonly imageService: ImagesService,
   ) { }
 
   async create(createBrandDto: CreateBrandDto, currentUser: UserEntity): Promise<CreateBrandResponse> {
@@ -119,11 +124,29 @@ export class BrandsService {
     return `This action returns a #${id} brand`;
   }
 
-  async update(id: number, dataUpdate: Partial<UpdateBrandDto>) {
+  async update(id: number, dataUpdate: Partial<UpdateBrandDto>, file: Express.Multer.File, @CurrentUser() currentUser: UserEntity) {
     try {
       const infoBrandUpdate = await this.brandsRepository.findOneBy({ id });
       if(!infoBrandUpdate) {
         throw new BadRequestException(`Brand with id ${id} is not exist!`);
+      }
+
+      if(file) {
+        const { originalname, buffer } = file;
+
+        const resultUpload = await uploadFile({ 
+          fileName: originalname,
+          file: buffer.toString('base64'),
+        });
+
+        const dataCreateImage = {
+          name: resultUpload.name,
+          size: resultUpload.size,
+          path: resultUpload.url
+        }
+        const resultCreateImage = await this.imageService.create(dataCreateImage, currentUser);
+
+        infoBrandUpdate.image = resultCreateImage.data;
       }
 
       Object.assign(infoBrandUpdate, dataUpdate);

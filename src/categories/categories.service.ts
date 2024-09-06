@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Get, Injectable, Param, Post } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ImagesService } from 'src/images/images.service';
+import { uploadFile } from 'src/services/image_kit_io';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
 import { Repository } from 'typeorm';
@@ -87,7 +88,6 @@ export class CategoriesService {
         .getRawMany();
 
       const idsCategoryParentHaveChild = resultGetList.map(categoryItem => categoryItem.parentId);
-      console.log("🚀 ~ CategoriesService ~ getListCategoryAndChild ~ idsCategoryParentHaveChild:", idsCategoryParentHaveChild)
 
       const recordsWithoutParent = await this.categoriesRepository
         .createQueryBuilder('category')
@@ -125,7 +125,7 @@ export class CategoriesService {
     return resultFindCategory;
   }
 
-  async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>, file: Express.Multer.File): Promise<UpdateCategoryResponse> {
+  async update(@Param('id') id: number, dataUpdate: Partial<UpdateCategoryDto>, file: Express.Multer.File, @CurrentUser() currentUser: UserEntity): Promise<UpdateCategoryResponse> {
     try {
       const infoCategory = await this.findOne(id);
       if (!infoCategory) {
@@ -133,9 +133,23 @@ export class CategoriesService {
       }
 
       if(file) {
-        
-      }
+        const { originalname, buffer } = file;
 
+        const resultUpload = await uploadFile({ 
+          fileName: originalname,
+          file: buffer.toString('base64'),
+        });
+
+        const dataCreateImage = {
+          name: resultUpload.name,
+          size: resultUpload.size,
+          path: resultUpload.url
+        }
+        const resultCreateImage = await this.imageService.create(dataCreateImage, currentUser);
+
+        infoCategory.image = resultCreateImage.data;
+      }
+    
       Object.assign(infoCategory, dataUpdate);
 
       const resultUpdateCategory = await this.categoriesRepository.save(infoCategory);
